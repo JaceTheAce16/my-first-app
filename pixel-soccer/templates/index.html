@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="menu-container">
+    <div class="title">
+        <h1>PIXEL<br>SOCCER</h1>
+    </div>
+    
+    <div class="menu-buttons">
+        <button class="menu-btn" onclick="startQuickMatch()">QUICK MATCH</button>
+        <button class="menu-btn" onclick="showMultiplayer()">MULTIPLAYER</button>
+        <button class="menu-btn" onclick="window.location.href='/settings'">SETTINGS</button>
+        <button class="menu-btn" onclick="showInstructions()">INSTRUCTIONS</button>
+    </div>
+    
+    <div id="multiplayer-options" class="multiplayer-options hidden">
+        <h3>MULTIPLAYER</h3>
+        <input type="text" id="player-name" placeholder="Enter your name" maxlength="12">
+        <div class="mp-buttons">
+            <button class="menu-btn" onclick="createRoom()">CREATE ROOM</button>
+            <button class="menu-btn" onclick="showJoinRoom()">JOIN ROOM</button>
+            <button class="menu-btn" onclick="hideMultiplayer()">BACK</button>
+        </div>
+        
+        <div id="join-room-form" class="hidden">
+            <input type="text" id="room-code" placeholder="Enter room code" maxlength="8">
+            <button class="menu-btn" onclick="joinRoom()">JOIN</button>
+        </div>
+        
+        <div id="room-info" class="hidden">
+            <p>Room Code: <span id="current-room-code"></span></p>
+            <p>Waiting for opponent...</p>
+        </div>
+    </div>
+    
+    <div id="instructions" class="instructions hidden">
+        <h3>HOW TO PLAY</h3>
+        <div class="controls">
+            <p><strong>Player 1:</strong> WASD to move, SPACE to kick</p>
+            <p><strong>Player 2:</strong> Arrow keys to move, ENTER to kick</p>
+            <p><strong>Goal:</strong> Score more goals than your opponent!</p>
+        </div>
+        <button class="menu-btn" onclick="hideInstructions()">BACK</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const socket = io();
+let currentRoomId = null;
+
+function startQuickMatch() {
+    window.location.href = '/game?mode=ai';
+}
+
+function showMultiplayer() {
+    document.getElementById('multiplayer-options').classList.remove('hidden');
+    document.querySelector('.menu-buttons').classList.add('hidden');
+}
+
+function hideMultiplayer() {
+    document.getElementById('multiplayer-options').classList.add('hidden');
+    document.querySelector('.menu-buttons').classList.remove('hidden');
+    document.getElementById('join-room-form').classList.add('hidden');
+    document.getElementById('room-info').classList.add('hidden');
+}
+
+function showJoinRoom() {
+    document.getElementById('join-room-form').classList.remove('hidden');
+}
+
+function showInstructions() {
+    document.getElementById('instructions').classList.remove('hidden');
+    document.querySelector('.menu-buttons').classList.add('hidden');
+}
+
+function hideInstructions() {
+    document.getElementById('instructions').classList.add('hidden');
+    document.querySelector('.menu-buttons').classList.remove('hidden');
+}
+
+function createRoom() {
+    const playerName = document.getElementById('player-name').value.trim() || 'Player';
+    socket.emit('create_room', { player_name: playerName });
+}
+
+function joinRoom() {
+    const roomCode = document.getElementById('room-code').value.trim().toUpperCase();
+    const playerName = document.getElementById('player-name').value.trim() || 'Player';
+    
+    if (roomCode.length === 8) {
+        socket.emit('join_room', { room_id: roomCode, player_name: playerName });
+    } else {
+        alert('Please enter a valid 8-character room code');
+    }
+}
+
+// Socket event listeners
+socket.on('room_created', (data) => {
+    currentRoomId = data.room_id;
+    document.getElementById('current-room-code').textContent = data.room_id.toUpperCase();
+    document.getElementById('room-info').classList.remove('hidden');
+});
+
+socket.on('joined_room', (data) => {
+    currentRoomId = data.room_id;
+    window.location.href = `/game?mode=multiplayer&room=${data.room_id}`;
+});
+
+socket.on('game_start', (gameState) => {
+    if (currentRoomId) {
+        window.location.href = `/game?mode=multiplayer&room=${currentRoomId}`;
+    }
+});
+
+socket.on('room_full', () => {
+    alert('This room is full!');
+});
+
+socket.on('room_not_found', () => {
+    alert('Room not found!');
+});
+</script>
+{% endblock %}

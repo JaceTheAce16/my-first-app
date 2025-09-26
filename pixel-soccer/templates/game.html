@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-ui">
+        <div class="scoreboard">
+            <div class="score-section">
+                <span class="team-name">HOME</span>
+                <span class="score" id="home-score">0</span>
+            </div>
+            <div class="timer">
+                <span id="timer-display">05:00</span>
+            </div>
+            <div class="score-section">
+                <span class="team-name">AWAY</span>
+                <span class="score" id="away-score">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="game-canvas" width="800" height="600"></canvas>
+    
+    <div class="game-controls">
+        <button id="pause-btn" class="control-btn">PAUSE</button>
+        <button id="exit-btn" class="control-btn" onclick="exitGame()">EXIT</button>
+    </div>
+    
+    <div id="pause-menu" class="overlay hidden">
+        <div class="menu-content">
+            <h2>PAUSED</h2>
+            <button class="menu-btn" onclick="resumeGame()">RESUME</button>
+            <button class="menu-btn" onclick="exitGame()">EXIT TO MENU</button>
+        </div>
+    </div>
+    
+    <div id="game-over" class="overlay hidden">
+        <div class="menu-content">
+            <h2>GAME OVER</h2>
+            <div id="final-score"></div>
+            <div id="winner-text"></div>
+            <button class="menu-btn" onclick="playAgain()">PLAY AGAIN</button>
+            <button class="menu-btn" onclick="exitGame()">EXIT</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+<script>
+// Get game mode and room from URL parameters
+const urlParams = new URLSearchParams(window.location.search);
+const gameMode = urlParams.get('mode') || 'ai';
+const roomId = urlParams.get('room');
+
+// Initialize game
+document.addEventListener('DOMContentLoaded', () => {
+    initGame(gameMode, roomId);
+});
+
+function exitGame() {
+    window.location.href = '/';
+}
+
+function pauseGame() {
+    if (window.gameInstance) {
+        window.gameInstance.pause();
+        document.getElementById('pause-menu').classList.remove('hidden');
+    }
+}
+
+function resumeGame() {
+    if (window.gameInstance) {
+        window.gameInstance.resume();
+        document.getElementById('pause-menu').classList.add('hidden');
+    }
+}
+
+function playAgain() {
+    window.location.reload();
+}
+
+// Pause button event
+document.getElementById('pause-btn').addEventListener('click', pauseGame);
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (document.getElementById('pause-menu').classList.contains('hidden')) {
+            pauseGame();
+        } else {
+            resumeGame();
+        }
+    }
+});
+</script>
+{% endblock %}

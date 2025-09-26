@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="settings-container">
+    <div class="settings-content">
+        <h1>SETTINGS</h1>
+        
+        <div class="setting-group">
+            <label for="sound-volume">SOUND</label>
+            <div class="slider-container">
+                <input type="range" id="sound-volume" min="0" max="100" value="70">
+                <span id="sound-value">70%</span>
+            </div>
+        </div>
+        
+        <div class="setting-group">
+            <label for="music-volume">MUSIC</label>
+            <div class="slider-container">
+                <input type="range" id="music-volume" min="0" max="100" value="50">
+                <span id="music-value">50%</span>
+            </div>
+        </div>
+        
+        <div class="setting-group">
+            <label for="game-length">GAME LENGTH</label>
+            <select id="game-length">
+                <option value="180">3 MIN</option>
+                <option value="300" selected>5 MIN</option>
+                <option value="420">7 MIN</option>
+            </select>
+        </div>
+        
+        <div class="setting-group">
+            <label for="difficulty">AI DIFFICULTY</label>
+            <select id="difficulty">
+                <option value="easy">EASY</option>
+                <option value="medium" selected>MEDIUM</option>
+                <option value="hard">HARD</option>
+            </select>
+        </div>
+        
+        <div class="control-info">
+            <h3>CONTROLS</h3>
+            <div class="controls-grid">
+                <div class="player-controls">
+                    <h4>PLAYER 1</h4>
+                    <p>W A S D - Move</p>
+                    <p>SPACE - Kick</p>
+                </div>
+                <div class="player-controls">
+                    <h4>PLAYER 2</h4>
+                    <p>↑ ← ↓ → - Move</p>
+                    <p>ENTER - Kick</p>
+                </div>
+            </div>
+        </div>
+        
+        <button class="menu-btn" onclick="saveSettings()">SAVE</button>
+        <button class="menu-btn" onclick="window.location.href='/'">BACK</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load saved settings
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+});
+
+function loadSettings() {
+    const settings = JSON.parse(localStorage.getItem('pixelSoccerSettings') || '{}');
+    
+    document.getElementById('sound-volume').value = settings.soundVolume || 70;
+    document.getElementById('music-volume').value = settings.musicVolume || 50;
+    document.getElementById('game-length').value = settings.gameLength || 300;
+    document.getElementById('difficulty').value = settings.difficulty || 'medium';
+    
+    updateSliderValues();
+}
+
+function saveSettings() {
+    const settings = {
+        soundVolume: parseInt(document.getElementById('sound-volume').value),
+        musicVolume: parseInt(document.getElementById('music-volume').value),
+        gameLength: parseInt(document.getElementById('game-length').value),
+        difficulty: document.getElementById('difficulty').value
+    };
+    
+    localStorage.setItem('pixelSoccerSettings', JSON.stringify(settings));
+    
+    // Show save confirmation
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'SAVED!';
+    setTimeout(() => {
+        btn.textContent = originalText;
+    }, 1000);
+}
+
+function updateSliderValues() {
+    document.getElementById('sound-value').textContent = document.getElementById('sound-volume').value + '%';
+    document.getElementById('music-value').textContent = document.getElementById('music-volume').value + '%';
+}
+
+// Update slider value displays
+document.getElementById('sound-volume').addEventListener('input', updateSliderValues);
+document.getElementById('music-volume').addEventListener('input', updateSliderValues);
+</script>
+{% endblock %}
