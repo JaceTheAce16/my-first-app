@@ -85,6 +85,7 @@
 
             const canvas = document.getElementById('game-canvas');
             gameInstance = new PixelSoccer(canvas, 'ai', null);
+            gameInstance.start(); // Start the game to make it active
             window.gameInstance = gameInstance;
         }
 
