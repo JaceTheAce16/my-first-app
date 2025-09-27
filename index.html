@@ -1,11 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My First App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Soccer</title>
+    <link rel="stylesheet" href="pixel-soccer/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>Welcome to My First App</h1>
-  <p>This site is deployed with GitHub Pages!</p>
+    <div class="container">
+        <div class="menu-container">
+            <div class="title">
+                <h1>PIXEL<br>SOCCER</h1>
+            </div>
+
+            <div class="menu-buttons">
+                <button class="menu-btn" onclick="startQuickMatch()">QUICK MATCH</button>
+                <button class="menu-btn" onclick="showInstructions()">INSTRUCTIONS</button>
+            </div>
+
+            <div id="instructions" class="instructions hidden">
+                <h3>HOW TO PLAY</h3>
+                <div class="controls">
+                    <p><strong>Player 1:</strong> WASD to move, SPACE to kick</p>
+                    <p><strong>Player 2:</strong> Arrow keys to move, ENTER to kick</p>
+                    <p><strong>Goal:</strong> Score more goals than your opponent!</p>
+                </div>
+                <button class="menu-btn" onclick="hideInstructions()">BACK</button>
+            </div>
+        </div>
+
+        <!-- Game Container (hidden initially) -->
+        <div id="game-container" class="game-container hidden">
+            <div class="game-ui">
+                <div class="scoreboard">
+                    <div class="score-section">
+                        <span class="team-name">HOME</span>
+                        <span class="score" id="home-score">0</span>
+                    </div>
+                    <div class="timer">
+                        <span id="timer-display">05:00</span>
+                    </div>
+                    <div class="score-section">
+                        <span class="team-name">AWAY</span>
+                        <span class="score" id="away-score">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <canvas id="game-canvas" width="800" height="600"></canvas>
+
+            <div class="game-controls">
+                <button id="pause-btn" class="control-btn">PAUSE</button>
+                <button id="exit-btn" class="control-btn" onclick="exitGame()">EXIT</button>
+            </div>
+
+            <div id="pause-menu" class="overlay hidden">
+                <div class="menu-content">
+                    <h2>PAUSED</h2>
+                    <button class="menu-btn" onclick="resumeGame()">RESUME</button>
+                    <button class="menu-btn" onclick="exitGame()">EXIT TO MENU</button>
+                </div>
+            </div>
+
+            <div id="game-over" class="overlay hidden">
+                <div class="menu-content">
+                    <h2>GAME OVER</h2>
+                    <div id="final-score"></div>
+                    <div id="winner-text"></div>
+                    <button class="menu-btn" onclick="playAgain()">PLAY AGAIN</button>
+                    <button class="menu-btn" onclick="exitGame()">EXIT</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="pixel-soccer/static/js/game.js"></script>
+    <script>
+        let gameInstance = null;
+
+        function startQuickMatch() {
+            document.querySelector('.menu-container').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+
+            const canvas = document.getElementById('game-canvas');
+            gameInstance = new PixelSoccer(canvas, 'ai', null);
+            window.gameInstance = gameInstance;
+        }
+
+        function showInstructions() {
+            document.getElementById('instructions').classList.remove('hidden');
+            document.querySelector('.menu-buttons').classList.add('hidden');
+        }
+
+        function hideInstructions() {
+            document.getElementById('instructions').classList.add('hidden');
+            document.querySelector('.menu-buttons').classList.remove('hidden');
+        }
+
+        function exitGame() {
+            if (gameInstance) {
+                gameInstance = null;
+                window.gameInstance = null;
+            }
+            document.getElementById('game-container').classList.add('hidden');
+            document.querySelector('.menu-container').classList.remove('hidden');
+            document.getElementById('pause-menu').classList.add('hidden');
+            document.getElementById('game-over').classList.add('hidden');
+        }
+
+        function pauseGame() {
+            if (window.gameInstance) {
+                window.gameInstance.pause();
+                document.getElementById('pause-menu').classList.remove('hidden');
+            }
+        }
+
+        function resumeGame() {
+            if (window.gameInstance) {
+                window.gameInstance.resume();
+                document.getElementById('pause-menu').classList.add('hidden');
+            }
+        }
+
+        function playAgain() {
+            exitGame();
+            startQuickMatch();
+        }
+
+        // Pause button event
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('pause-btn').addEventListener('click', pauseGame);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (document.getElementById('pause-menu').classList.contains('hidden')) {
+                    pauseGame();
+                } else {
+                    resumeGame();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
